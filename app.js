@@ -2,22 +2,32 @@
 const express = require('express');
 const fs = require('fs');
 
-// definindo nosso server
-const app = express();
+const app = express(); // definindo nosso server
+app.use(express.json()); // middleware
+
+// middlewares customizadas
+// o 'next' e' necessario para continuar a cadeia de middlewares
+app.use((req, res, next) => {
+  console.log('hello from middleware!');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
+});
 
 // guarda os dados uma unica vez
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-// middleware
-app.use(express.json());
-
 const getAllTours = (req, res) => {
   res
     .status(200)
     .json({
       status: 200,
+      requestdAt: req.requestTime,
       results: tours.length,
       data: {
         tours
