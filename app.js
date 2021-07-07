@@ -5,34 +5,15 @@ const fs = require('fs');
 // definindo nosso server
 const app = express();
 
-// middleware
-app.use(express.json());
-
-/**
- * configurando rotas [endereco, callback(req, res)]
- * req - http://expressjs.com/en/api.html#req
- * res - http://expressjs.com/en/api.html#res
- */
-// app.get('/', (req, res) => {
-//   // res.status(200).send('Hello from the server side!');
-//   res
-//     .status(200)
-//     .json({
-//       message: 'Hello from the server side!',
-//       app: 'Natours!',
-//     });
-// });
-
-// app.post('/', (req, res) => {
-//   res.send('You can post to this endpoint...');
-// })
-
 // guarda os dados uma unica vez
 const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`)
 );
 
-app.get('/api/v1/tours', (req, res) => {
+// middleware
+app.use(express.json());
+
+const getAllTours = (req, res) => {
   res
     .status(200)
     .json({
@@ -42,9 +23,9 @@ app.get('/api/v1/tours', (req, res) => {
         tours
       }
     });
-});
+}
 
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
 
   const id = req.params.id * 1;
   const tour = tours.find(el => el.id === id);
@@ -63,9 +44,9 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tours: tour,
     }
   })
-});
+}
 
-app.post('/api/v1/tours', (req, res) => {
+const createTour = (req, res) => {
   // console.log(req.body);
 
   const newId = tours[tours.length - 1].id + 1;
@@ -86,9 +67,9 @@ app.post('/api/v1/tours', (req, res) => {
       });
   });
   // res.send('Done');
-});
+}
 
-app.patch('/api/v1/tours/:id', (req, res) => {
+const updateTour = (req, res) => {
   if (req.params.id * 1 < tours.length) {
     res.status(200).json({
       status: 'success',
@@ -102,7 +83,39 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       message: '<Tour doenst exists>'
     })
   }
-});
+}
+
+const deleteTour = (req, res) => {
+  if (req.params.id * 1 < tours.length) {
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } else {
+    res.status(404).json({
+      status: 'fail',
+      message: '<Tour doenst exists>',
+    })
+  }
+
+}
+
+// app.get('/api/v1/tours', getAllTours);
+// app.post('/api/v1/tours', createTour);
+// app.get('/api/v1/tours/:id', getTour);
+// app.patch('/api/v1/tours/:id', updateTour);
+
+app
+  .route('/api/v1/tours')
+  .get(getAllTours)
+  .post(createTour)
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour)
+
 
 // isolando a porta
 const port = 3000;
